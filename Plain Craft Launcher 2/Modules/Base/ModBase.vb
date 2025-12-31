@@ -21,7 +21,7 @@ Public Module ModBase
     '下列版本信息由能工智人自助修改
     Public Const VersionBaseName As String = "0.2.0-beta.1" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "0..0." & VersionBranchCode
-    Public Const UpstreamVersion As String = "2.13.4-beta.5" '上游版本
+    Public Const UpstreamVersion As String = "2.13.4-beta.6" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     Public Const VersionCode As Integer = 100 '内部版本号
@@ -2476,7 +2476,8 @@ NextElement:
     End Function
 
 #End Region
-    
+
+    ''' <summary>
     ''' 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
     ''' </summary>
     Public Function CheckPermission(Path As String) As Boolean
@@ -2506,7 +2507,6 @@ NextElement:
         File.Create(Path & "CheckPermission").Dispose()
         File.Delete(Path & "CheckPermission")
     End Sub
-    ''' <summary>
 
 #Region "UI"
 
@@ -2891,9 +2891,14 @@ NextElement:
         OpenWebsite("https://github.com/tsxc-github/PCL2-CE/issues/")
     End Sub
     Public Function CanFeedback(ShowHint As Boolean) As Boolean
-        If Not IsVerisonLatest() Then
+        Dim stat As VersionStatus = GetVersionStatus()
+        If stat <> VersionStatus.Latest Then
             If ShowHint Then
-                If MyMsgBox($"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。", "无法提交反馈", "更新", "取消") = 1 Then
+                If MyMsgBox(
+                    If(stat = VersionStatus.NotLatest,
+                    $"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
+                    $"你的 PCL 检查更新失败，因此无法提交反馈。{vbCrLf}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。"),
+                    "无法提交反馈", If(stat = VersionStatus.NotLatest, "更新", "重新检查更新"), "取消") = 1 Then
                     UpdateCheckByButton()
                 End If
             End If

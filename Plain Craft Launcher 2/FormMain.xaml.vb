@@ -4,6 +4,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -74,6 +75,10 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
+        '注册 MsgBox 事件
+        AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
+        '注册 Hint 事件
+        AddHandler HintWrapper.OnShow, AddressOf HintWrapper_OnShow
         '加载 UI
         InitializeComponent()
         Opacity = 0
@@ -329,8 +334,8 @@ Public Class FormMain
             Setup.Set("ToolDownloadTranslateV2", Setup.Get("ToolDownloadTranslate") + 1)
             Log("[Start] 已从老版本迁移 Mod 命名设置")
         End If
-        '社区版提示
-        If Not Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce(True)
+        '更新后展示社区版提示
+        ShowCEAnnounce()
         '输出更新日志
         If LastVersionCode <= 0 Then Return
         If LowerVersionCode >= VersionCode Then Return
